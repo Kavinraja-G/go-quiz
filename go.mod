@@ -1,3 +1,3 @@
-module github.com/Kavinraja-G/quiz
+module github.com/Kavinraja-G/go-quiz
 
 go 1.16

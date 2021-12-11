@@ -33,7 +33,7 @@ func readCSV(file *os.File) [][]string {
 
 // Driver function
 func main() {
-	fmt.Println("Welcome to Go Quiz!")
+	fmt.Println("Welcome to Goopher Quiz :)")
 
 	f := readFile(filePath)
 	defer f.Close() //Closes file at the end of driver function
