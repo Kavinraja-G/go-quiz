@@ -10,6 +10,11 @@ import (
 // Constants
 const filePath string = "problems.csv"
 
+type Quiz struct {
+	question string
+	answer   string
+}
+
 // Read a file from local path
 func readFile(filePath string) *os.File {
 	f, err := os.Open(filePath)
@@ -31,6 +36,23 @@ func readCSV(file *os.File) [][]string {
 	return csvData
 }
 
+// Get all questions
+func getQuestions(csvData [][]string) []Quiz {
+	// Handle no questions in the file
+	if len(csvData) == 0 {
+		panic("No Questions are available! :(")
+	}
+
+	var data []Quiz
+	for _, questions := range csvData {
+		q := Quiz{}
+		q.question = questions[0]
+		q.answer = questions[1]
+		data = append(data, q)
+	}
+	return data
+}
+
 // Driver function
 func main() {
 	fmt.Println("Welcome to Goopher Quiz :)")
@@ -38,6 +60,6 @@ func main() {
 	f := readFile(filePath)
 	defer f.Close() //Closes file at the end of driver function
 	csvData := readCSV(f)
-
-	fmt.Println(csvData)
+	questions := getQuestions(csvData)
+	fmt.Println(questions)
 }
