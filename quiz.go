@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/csv"
 	"fmt"
 	"log"
@@ -8,7 +9,10 @@ import (
 )
 
 // Constants
-const filePath string = "problems.csv"
+const (
+	filePath       string = "problems.csv"
+	totalQuestions int    = 5
+)
 
 type Quiz struct {
 	question string
@@ -53,6 +57,34 @@ func getQuestions(csvData [][]string) []Quiz {
 	return data
 }
 
+// Ask Questions
+func askQuestions(questions []Quiz) int {
+	currentQuestion := 1
+	score := 0
+	scanner := bufio.NewScanner(os.Stdin)
+
+	for _, quiz := range questions {
+		if currentQuestion > totalQuestions {
+			break
+		} else {
+			fmt.Printf(
+				"Question (%v/%v): What is %v?\n",
+				currentQuestion,
+				totalQuestions,
+				quiz.question,
+			)
+			scanner.Scan()
+			answer := scanner.Text()
+			if quiz.answer == answer {
+				score += 1
+			}
+			currentQuestion += 1
+		}
+	}
+
+	return score
+}
+
 // Driver function
 func main() {
 	fmt.Println("Welcome to Goopher Quiz :)")
@@ -61,5 +93,6 @@ func main() {
 	defer f.Close() //Closes file at the end of driver function
 	csvData := readCSV(f)
 	questions := getQuestions(csvData)
-	fmt.Println(questions)
+	finalScore := askQuestions(questions)
+	fmt.Printf("Your Score: %v\n", finalScore)
 }
