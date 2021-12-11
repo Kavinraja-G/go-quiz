@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 )
 
 // Constants
@@ -49,10 +51,10 @@ func getQuestions(csvData [][]string) []Quiz {
 
 	var data []Quiz
 	for _, questions := range csvData {
-		q := Quiz{}
-		q.question = questions[0]
-		q.answer = questions[1]
-		data = append(data, q)
+		data = append(data, Quiz{
+			question: strings.TrimSpace(questions[0]),
+			answer:   strings.TrimSpace(questions[1]),
+		})
 	}
 	return data
 }
@@ -73,10 +75,18 @@ func askQuestions(questions []Quiz) int {
 				totalQuestions,
 				quiz.question,
 			)
-			scanner.Scan()
-			answer := scanner.Text()
-			if quiz.answer == answer {
-				score += 1
+
+			for scanner.Scan() {
+				answer := scanner.Text()
+				_, err := strconv.Atoi(answer)
+				if err == nil {
+					if quiz.answer == answer {
+						score += 1
+					}
+					break
+				} else {
+					fmt.Printf("'%v' is not a valid number!\n", answer)
+				}
 			}
 			currentQuestion += 1
 		}
@@ -87,10 +97,10 @@ func askQuestions(questions []Quiz) int {
 
 // Driver function
 func main() {
-	fmt.Println("Welcome to Goopher Quiz :)")
+	fmt.Println("*************** Welcome to Goopher Quiz :) ***************")
 
 	f := readFile(filePath)
-	defer f.Close() //Closes file at the end of driver function
+	defer f.Close()
 	csvData := readCSV(f)
 	questions := getQuestions(csvData)
 	finalScore := askQuestions(questions)
