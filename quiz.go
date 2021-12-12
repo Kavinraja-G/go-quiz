@@ -3,22 +3,24 @@ package main
 import (
 	"bufio"
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Constants
 const (
-	filePath       string = "problems.csv"
-	totalQuestions int    = 5
+	defaultFilePath  string = "problems.csv" // flag default
+	defaultTotalTime int    = 5              // flag default
+	totalQuestions   int    = 5
 )
 
 type Quiz struct {
-	question string
-	answer   string
+	question, answer string
 }
 
 // Read a file from local path
@@ -59,11 +61,27 @@ func getQuestions(csvData [][]string) []Quiz {
 	return data
 }
 
+// Validate answer from the user
+func isCorrectAnswer(quiz Quiz, ansChannel chan<- bool) {
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		answer := scanner.Text()
+		_, err := strconv.Atoi(answer)
+		if err == nil {
+			ansChannel <- (quiz.answer == answer)
+			return
+		} else {
+			fmt.Printf("'%v' is not a valid number!\n", answer)
+		}
+	}
+	ansChannel <- false
+}
+
 // Ask Questions
-func askQuestions(questions []Quiz) int {
+func askQuestions(questions []Quiz, totalTime int) int {
 	currentQuestion := 1
 	score := 0
-	scanner := bufio.NewScanner(os.Stdin)
+	timer := time.NewTimer(time.Duration(totalTime) * time.Second)
 
 	for _, quiz := range questions {
 		if currentQuestion > totalQuestions {
@@ -76,33 +94,46 @@ func askQuestions(questions []Quiz) int {
 				quiz.question,
 			)
 
-			for scanner.Scan() {
-				answer := scanner.Text()
-				_, err := strconv.Atoi(answer)
-				if err == nil {
-					if quiz.answer == answer {
-						score += 1
-					}
-					break
-				} else {
-					fmt.Printf("'%v' is not a valid number!\n", answer)
+			// Routine to check the answer
+			ansChannel := make(chan bool)
+			go isCorrectAnswer(quiz, ansChannel)
+
+			select {
+			case <-timer.C:
+				fmt.Printf("Time finished! ")
+				return score
+			case isCorrect := <-ansChannel:
+				if isCorrect {
+					score++
 				}
 			}
-			currentQuestion += 1
+			currentQuestion++
 		}
 	}
 
 	return score
 }
 
+// Get CLI Arguments
+func getArguments() (string, int) {
+
+	filePath := flag.String("filePath", defaultFilePath, "A valid system filepath for the csv file which contains the Questions. Eg: 'problems.csv'")
+	totalTime := flag.Int("totalTime", defaultTotalTime, "A valid integer to indicate the total time (in seconds) for the Quiz. Eg: 10 or '10'")
+
+	flag.Parse()
+	return *filePath, *totalTime
+}
+
 // Driver function
 func main() {
 	fmt.Println("*************** Welcome to Goopher Quiz :) ***************")
+
+	filePath, totalTime := getArguments()
 
 	f := readFile(filePath)
 	defer f.Close()
 	csvData := readCSV(f)
 	questions := getQuestions(csvData)
-	finalScore := askQuestions(questions)
+	finalScore := askQuestions(questions, totalTime)
 	fmt.Printf("Your Score: %v\n", finalScore)
 }
