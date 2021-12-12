@@ -2,54 +2,29 @@ package main
 
 import (
 	"bufio"
-	"encoding/csv"
-	"flag"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Kavinraja-G/go-quiz/helpers"
 )
 
 // Constants
-const (
-	defaultFilePath  string = "problems.csv" // flag default
-	defaultTotalTime int    = 5              // flag default
-	totalQuestions   int    = 5
-)
+const totalQuestions int = 5
 
 // Custom type for the Quiz
 type Quiz struct {
 	question, answer string
 }
 
-// Read a file from local path
-func readFile(filePath string) *os.File {
-	f, err := os.Open(filePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return f
-}
-
-// Read a CSV file and return the data
-func readCSV(file *os.File) [][]string {
-	csvReader := csv.NewReader(file)
-	csvData, err := csvReader.ReadAll()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return csvData
-}
-
 // Parse all questions from the CSV file to the custom type
 func getQuestions(csvData [][]string) []Quiz {
 	// Handle no questions in the file
 	if len(csvData) == 0 {
-		panic("No Questions are available! :(")
+		log.Fatal("No Questions are available! :(")
 	}
 
 	var data []Quiz
@@ -114,25 +89,15 @@ func askQuestions(questions []Quiz, totalTime int) int {
 	return score
 }
 
-// Get CLI Arguments
-func getArguments() (string, int) {
-
-	filePath := flag.String("filePath", defaultFilePath, "A valid system filepath for the csv file which contains the Questions. Eg: 'problems.csv'")
-	totalTime := flag.Int("totalTime", defaultTotalTime, "A valid integer to indicate the total time (in seconds) for the Quiz. Eg: 10 or '10'")
-
-	flag.Parse()
-	return *filePath, *totalTime
-}
-
 // Driver function
 func main() {
 	fmt.Println("*************** Welcome to Goopher Quiz :) ***************")
 
-	filePath, totalTime := getArguments()
+	filePath, totalTime := helpers.GetArguments()
 
-	f := readFile(filePath)
+	f := helpers.ReadFile(filePath)
 	defer f.Close()
-	csvData := readCSV(f)
+	csvData := helpers.ReadCSV(f)
 	questions := getQuestions(csvData)
 	finalScore := askQuestions(questions, totalTime)
 	fmt.Printf("Your Score: %v\n", finalScore)
