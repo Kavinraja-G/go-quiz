@@ -19,6 +19,7 @@ const (
 	totalQuestions   int    = 5
 )
 
+// Custom type for the Quiz
 type Quiz struct {
 	question, answer string
 }
@@ -44,7 +45,7 @@ func readCSV(file *os.File) [][]string {
 	return csvData
 }
 
-// Get all questions
+// Parse all questions from the CSV file to the custom type
 func getQuestions(csvData [][]string) []Quiz {
 	// Handle no questions in the file
 	if len(csvData) == 0 {
@@ -61,7 +62,7 @@ func getQuestions(csvData [][]string) []Quiz {
 	return data
 }
 
-// Validate answer from the user
+// Validate answers from the user
 func isCorrectAnswer(quiz Quiz, ansChannel chan<- bool) {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -77,10 +78,12 @@ func isCorrectAnswer(quiz Quiz, ansChannel chan<- bool) {
 	ansChannel <- false
 }
 
-// Ask Questions
+// Ask Questions to the user
 func askQuestions(questions []Quiz, totalTime int) int {
 	currentQuestion := 1
 	score := 0
+
+	// Timer to start the duration of the Quiz
 	timer := time.NewTimer(time.Duration(totalTime) * time.Second)
 
 	for _, quiz := range questions {
@@ -88,10 +91,7 @@ func askQuestions(questions []Quiz, totalTime int) int {
 			break
 		} else {
 			fmt.Printf(
-				"Question (%v/%v): What is %v?\n",
-				currentQuestion,
-				totalQuestions,
-				quiz.question,
+				"Question (%v/%v): What is %v?\n", currentQuestion, totalQuestions, quiz.question,
 			)
 
 			// Routine to check the answer
